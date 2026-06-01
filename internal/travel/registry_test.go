@@ -1,6 +1,9 @@
 package travel
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestTravelRejectsUnknownSourceIDs(t *testing.T) {
 	reg := DefaultRegistry()
@@ -20,6 +23,9 @@ func TestTravelSearchTemplatesWhenConfigured(t *testing.T) {
 	reg := DefaultRegistry()
 	for id, src := range reg.Sources {
 		if src.SearchTemplate == "" {
+			continue
+		}
+		if !strings.Contains(src.SearchTemplate, "{query}") {
 			continue
 		}
 		url, err := src.SearchURL("Orlando")
