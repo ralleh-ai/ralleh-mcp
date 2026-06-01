@@ -1,0 +1,11 @@
+# Curated travel collections. Travel v1 is research-only: no booking, no card, no passenger PII.
+collections:
+  us_domestic_flights:
+    defaultSources: [amadeus, duffel, kiwi, skyscanner]
+    directAirlineFallback: [delta, united, american, southwest, jetblue, alaska]
+  international_flights:
+    defaultSources: [amadeus, duffel, skyscanner, kiwi]
+    directAirlineFallback: [united, delta, american, british_airways, lufthansa, air_france, klm]
+  budget_flights:
+    defaultSources: [kiwi, skyscanner]
+    directAirlineFallback: [frontier, spirit, southwest]

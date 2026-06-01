@@ -1,0 +1,14 @@
+# Curated shopping collections. Runtime loading lands after the typed registry stabilizes.
+collections:
+  tools:
+    defaultSources: [home_depot, lowes, harbor_freight, ace_hardware, tractor_supply, ebay]
+    extendedSources: [menards, walmart, amazon_api]
+  toys:
+    defaultSources: [target, walmart, best_buy, costco, ebay]
+    extendedSources: [amazon_api]
+  gifts:
+    defaultSources: [etsy, target, ebay, walmart]
+    extendedSources: [costco, amazon_api]
+  electronics:
+    defaultSources: [best_buy, target, walmart, costco, ebay]
+    extendedSources: [amazon_api]
