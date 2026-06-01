@@ -9,6 +9,7 @@ cd "$ROOT"
 SHOP_PORT="${SHOP_PORT:-8621}"
 TRAVEL_PORT="${TRAVEL_PORT:-8622}"
 SEARCH_PORT="${SEARCH_PORT:-8624}"
+BRAND_DB="${BRAND_DB:-/tmp/ralleh-mcp-smoke-brand.db}"
 SHOP_ADDR="127.0.0.1:${SHOP_PORT}"
 TRAVEL_ADDR="127.0.0.1:${TRAVEL_PORT}"
 SEARCH_ADDR="127.0.0.1:${SEARCH_PORT}"
@@ -31,9 +32,11 @@ log "one-shot health"
 ./dist/bin/ralleh-mcp-shop --health > /tmp/ralleh-mcp-smoke-shop-health.json
 ./dist/bin/ralleh-mcp-travel --health > /tmp/ralleh-mcp-smoke-travel-health.json
 ./dist/bin/ralleh-mcp-search --health > /tmp/ralleh-mcp-smoke-search-health.json
+rm -f "$BRAND_DB"
+./dist/bin/ralleh-mcp-brand --db "$BRAND_DB" --health > /tmp/ralleh-mcp-smoke-brand-health.json
 python3 - <<'PY'
 import json
-for name,path in [('shop','/tmp/ralleh-mcp-smoke-shop-health.json'),('travel','/tmp/ralleh-mcp-smoke-travel-health.json'),('search','/tmp/ralleh-mcp-smoke-search-health.json')]:
+for name,path in [('shop','/tmp/ralleh-mcp-smoke-shop-health.json'),('travel','/tmp/ralleh-mcp-smoke-travel-health.json'),('search','/tmp/ralleh-mcp-smoke-search-health.json'),('brand','/tmp/ralleh-mcp-smoke-brand-health.json')]:
     data=json.load(open(path))
     assert data['ready'] is True, data
     assert data['status'] == 'ok', data
@@ -129,5 +132,21 @@ cat <<'MSG'
 Fake upstream searches validate search contracts, source rejection, affiliate URL path, no-booking/no-card boundaries, and no-arbitrary-crawl content search.
 Live website/API searches are still intentionally not part of smoke until real source adapters are implemented.
 MSG
+
+
+log "brand memory smoke"
+./dist/bin/ralleh-mcp-brand --db "$BRAND_DB" --create-brand --org org_smoke --brand brand_smoke --name "Ralleh Smoke" --description "Smoke test brand" --mission "Verify brand memory" >/tmp/ralleh-mcp-smoke-brand-create.json
+./dist/bin/ralleh-mcp-brand --db "$BRAND_DB" --update-voice --org org_smoke --brand brand_smoke --tone "direct,precise" --forbidden "magical,fully autonomous" --preferred "verification before done" >/tmp/ralleh-mcp-smoke-brand-voice.json
+./dist/bin/ralleh-mcp-brand --db "$BRAND_DB" --validate-content --org org_smoke --brand brand_smoke --content "Our magical AI is fully autonomous" --rewrite >/tmp/ralleh-mcp-smoke-brand-validate.json
+./dist/bin/ralleh-mcp-brand --db "$BRAND_DB" --audit-log --org org_smoke --brand brand_smoke >/tmp/ralleh-mcp-smoke-brand-audit.json
+python3 - <<'PY'
+import json
+validation=json.load(open('/tmp/ralleh-mcp-smoke-brand-validate.json'))
+audit=json.load(open('/tmp/ralleh-mcp-smoke-brand-audit.json'))
+assert validation['brandComplianceScore'] < 100, validation
+assert validation['violations'], validation
+assert audit, audit
+print(f"brand validation score: {validation['brandComplianceScore']}, audit events={len(audit)}")
+PY
 
 log "smoke PASS"

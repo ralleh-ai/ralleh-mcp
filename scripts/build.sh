@@ -12,4 +12,5 @@ mkdir -p dist/bin
 "$GO" build -trimpath -ldflags "$LDFLAGS" -o dist/bin/ralleh-mcp-shop ./cmd/ralleh-mcp-shop
 "$GO" build -trimpath -ldflags "$LDFLAGS" -o dist/bin/ralleh-mcp-travel ./cmd/ralleh-mcp-travel
 "$GO" build -trimpath -ldflags "$LDFLAGS" -o dist/bin/ralleh-mcp-search ./cmd/ralleh-mcp-search
-sha256sum dist/bin/ralleh-mcp-shop dist/bin/ralleh-mcp-travel dist/bin/ralleh-mcp-search > dist/SHA256SUMS
+"$GO" build -trimpath -ldflags "$LDFLAGS" -o dist/bin/ralleh-mcp-brand ./cmd/ralleh-mcp-brand
+sha256sum dist/bin/ralleh-mcp-shop dist/bin/ralleh-mcp-travel dist/bin/ralleh-mcp-search dist/bin/ralleh-mcp-brand > dist/SHA256SUMS
