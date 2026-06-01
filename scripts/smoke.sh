@@ -88,11 +88,28 @@ grep -q 'bin/ralleh-mcp-shop' /tmp/ralleh-mcp-smoke-backup-list.txt
 grep -q 'configs/sources.shop.yaml' /tmp/ralleh-mcp-smoke-backup-list.txt
 echo "backup ok: $BACKUP_PATH"
 
-log "search capability boundary"
+log "deterministic fake search smoke"
+./dist/bin/ralleh-mcp-shop --search-query "cordless drill" --search-collection tools --search-sources ebay,random_site >/tmp/ralleh-mcp-smoke-shop-search.json
+./dist/bin/ralleh-mcp-travel --flight-origin MCO --flight-destination LAS --flight-depart 2026-07-12 --flight-collection us_domestic_flights --flight-sources duffel,random_ota >/tmp/ralleh-mcp-smoke-travel-search.json
+python3 - <<'PY'
+import json
+shop=json.load(open('/tmp/ralleh-mcp-smoke-shop-search.json'))
+travel=json.load(open('/tmp/ralleh-mcp-smoke-travel-search.json'))
+assert shop['status']=='ok', shop
+assert travel['status']=='ok', travel
+assert shop['results'], shop
+assert travel['results'], travel
+assert 'random_site' in shop['sourcePlan']['rejectedSources'], shop['sourcePlan']
+assert 'random_ota' in travel['sourcePlan']['rejectedSources'], travel['sourcePlan']
+assert any(item['affiliate']['applied'] for item in shop['results']), shop['results']
+assert travel['capabilities']['canBook'] is False, travel['capabilities']
+assert travel['capabilities']['canUseCreditCard'] is False, travel['capabilities']
+print(f"shop fake search: {len(shop['results'])} results, rejected={shop['sourcePlan']['rejectedSources']}")
+print(f"travel fake search: {len(travel['results'])} results, rejected={travel['sourcePlan']['rejectedSources']}")
+PY
 cat <<'MSG'
-Actual product/flight source searches are intentionally not part of this smoke yet.
-Current implementation has health, registries, budgets, affiliate safety, bounded execution, and ops hardening.
-Real smoke searches should be added after MCP search handlers and at least one fake upstream adapter exist.
+Fake upstream searches validate the search contract, source rejection, affiliate URL path, and no-booking/no-card capability boundary.
+Live website/API searches are still intentionally not part of smoke until real source adapters are implemented.
 MSG
 
 log "smoke PASS"

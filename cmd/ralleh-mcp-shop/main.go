@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/ralleh-ai/ralleh-mcp/internal/core/budget"
 	"github.com/ralleh-ai/ralleh-mcp/internal/core/health"
 	"github.com/ralleh-ai/ralleh-mcp/internal/shop"
+	shopsearch "github.com/ralleh-ai/ralleh-mcp/internal/shop/search"
 )
 
 func capabilities() map[string]bool {
@@ -29,10 +31,22 @@ func main() {
 	healthServer := flag.Bool("health-server", false, "serve local-only HTTP health endpoints")
 	healthListen := flag.String("health-listen", "127.0.0.1:8621", "health server listen address")
 	allowNonLoopback := flag.Bool("allow-non-loopback-health", false, "allow health server to bind outside loopback; requires external firewall/auth controls")
+	searchQuery := flag.String("search-query", "", "run deterministic fake shop search for smoke/integration testing")
+	searchCollection := flag.String("search-collection", "tools", "curated shop collection for fake search")
+	searchSources := flag.String("search-sources", "", "comma-separated preferred source IDs for fake search")
 	flag.Parse()
 
 	reg := shop.DefaultRegistry()
 	status := health.Evaluate("ralleh-mcp-shop", reg, capabilities())
+	if *searchQuery != "" {
+		resp, err := shopsearch.Search(context.Background(), shopsearch.Request{Query: *searchQuery, Collection: *searchCollection, PreferredSources: splitCSV(*searchSources), BudgetProfile: "fast"}, shopsearch.FakeAdapter{})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		writeJSON(resp)
+		return
+	}
 	if *healthOnly {
 		writeJSON(status)
 		if !status.Ready {
@@ -70,4 +84,19 @@ func writeJSON(v any) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func splitCSV(raw string) []string {
+	if strings.TrimSpace(raw) == "" {
+		return nil
+	}
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part != "" {
+			out = append(out, part)
+		}
+	}
+	return out
 }
