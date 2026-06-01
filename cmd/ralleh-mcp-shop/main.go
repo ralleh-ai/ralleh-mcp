@@ -34,10 +34,25 @@ func main() {
 	searchQuery := flag.String("search-query", "", "run deterministic fake shop search for smoke/integration testing")
 	searchCollection := flag.String("search-collection", "tools", "curated shop collection for fake search")
 	searchSources := flag.String("search-sources", "", "comma-separated preferred source IDs for fake search")
+	rankSources := flag.Bool("rank-sources", false, "print ranked curated source lists and exit")
+	rankCollection := flag.String("rank-collection", "", "optional collection ID for --rank-sources")
 	flag.Parse()
 
 	reg := shop.DefaultRegistry()
 	status := health.Evaluate("ralleh-mcp-shop", reg, capabilities())
+	if *rankSources {
+		if *rankCollection != "" {
+			ranks, err := reg.RankCollection(*rankCollection)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			writeJSON(map[string]any{"service": "ralleh-mcp-shop", "collection": *rankCollection, "rankings": ranks})
+			return
+		}
+		writeJSON(map[string]any{"service": "ralleh-mcp-shop", "rankings": reg.RankAll()})
+		return
+	}
 	if *searchQuery != "" {
 		resp, err := shopsearch.Search(context.Background(), shopsearch.Request{Query: *searchQuery, Collection: *searchCollection, PreferredSources: splitCSV(*searchSources), BudgetProfile: "fast"}, shopsearch.FakeAdapter{})
 		if err != nil {

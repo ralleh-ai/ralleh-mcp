@@ -34,10 +34,25 @@ func main() {
 	flightDepart := flag.String("flight-depart", "", "departure date for fake flight search")
 	flightCollection := flag.String("flight-collection", "us_domestic_flights", "curated travel collection for fake flight search")
 	flightSources := flag.String("flight-sources", "", "comma-separated preferred source IDs for fake flight search")
+	rankSources := flag.Bool("rank-sources", false, "print ranked curated source lists and exit")
+	rankCollection := flag.String("rank-collection", "", "optional collection ID for --rank-sources")
 	flag.Parse()
 
 	reg := travel.DefaultRegistry()
 	status := health.Evaluate("ralleh-mcp-travel", reg, capabilities())
+	if *rankSources {
+		if *rankCollection != "" {
+			ranks, err := reg.RankCollection(*rankCollection)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			writeJSON(map[string]any{"service": "ralleh-mcp-travel", "collection": *rankCollection, "rankings": ranks})
+			return
+		}
+		writeJSON(map[string]any{"service": "ralleh-mcp-travel", "rankings": reg.RankAll()})
+		return
+	}
 	if *flightOrigin != "" || *flightDestination != "" || *flightDepart != "" {
 		resp, err := travelsearch.Search(context.Background(), travelsearch.Request{Origin: *flightOrigin, Destination: *flightDestination, DepartDate: *flightDepart, Collection: *flightCollection, PreferredSources: splitCSV(*flightSources), BudgetProfile: "fast"}, travelsearch.FakeAdapter{})
 		if err != nil {
