@@ -2,7 +2,9 @@ package source
 
 import (
 	"fmt"
+	"net/url"
 	"sort"
+	"strings"
 )
 
 // Mode describes how a known source may be queried.
@@ -21,10 +23,28 @@ type Source struct {
 	ID               string
 	Name             string
 	Domains          []string
+	SearchTemplate   string
 	Modes            []Mode
 	Priority         int
 	Marketplace      bool
 	AffiliateCapable bool
+}
+
+// SearchURL builds a source search URL from the source-owned template. Templates
+// must contain {query}. The query is path-escaped for path placeholders and
+// query-escaped for query-string placeholders.
+func (s Source) SearchURL(query string) (string, error) {
+	if strings.TrimSpace(s.SearchTemplate) == "" {
+		return "", fmt.Errorf("source %q has no search template", s.ID)
+	}
+	if !strings.Contains(s.SearchTemplate, "{query}") {
+		return "", fmt.Errorf("source %q search template missing {query}", s.ID)
+	}
+	encoded := url.QueryEscape(query)
+	if strings.Contains(s.SearchTemplate, "/{query}") || strings.Contains(s.SearchTemplate, "={query}") == false && strings.HasSuffix(s.SearchTemplate, "{query}") {
+		encoded = url.PathEscape(query)
+	}
+	return strings.ReplaceAll(s.SearchTemplate, "{query}", encoded), nil
 }
 
 // Collection maps a product/travel category to approved source IDs.

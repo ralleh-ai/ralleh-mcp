@@ -20,3 +20,28 @@ func TestToolsCollectionUsesCuratedSourcesOnly(t *testing.T) {
 		}
 	}
 }
+
+func TestRegistrySearchTemplates(t *testing.T) {
+	reg := DefaultRegistry()
+	for id, src := range reg.Sources {
+		if src.SearchTemplate == "" {
+			t.Fatalf("source %s missing search template", id)
+		}
+		url, err := src.SearchURL("cordless drill 20v")
+		if err != nil {
+			t.Fatalf("source %s search URL: %v", id, err)
+		}
+		if url == src.SearchTemplate {
+			t.Fatalf("source %s template was not expanded", id)
+		}
+	}
+}
+
+func TestExpandedCollectionsExist(t *testing.T) {
+	reg := DefaultRegistry()
+	for _, id := range []string{"tools", "office", "electronics", "clothing", "marketplaces", "auto", "toys", "gifts"} {
+		if _, ok := reg.Collections[id]; !ok {
+			t.Fatalf("missing collection %s", id)
+		}
+	}
+}
