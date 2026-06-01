@@ -67,6 +67,24 @@ Ralleh MCP keeps two URLs:
 
 Affiliate status must never silently affect ranking unless a ranking policy explicitly allows it.
 
+## Health and operations
+
+One-shot health checks:
+
+```bash
+ralleh-mcp-shop --health
+ralleh-mcp-travel --health
+```
+
+Local-only HTTP health endpoints:
+
+```bash
+ralleh-mcp-shop --health-server --health-listen 127.0.0.1:8621
+ralleh-mcp-travel --health-server --health-listen 127.0.0.1:8622
+```
+
+See [`docs/OPERATIONS.md`](docs/OPERATIONS.md) for VPS install, upgrade, backup, and systemd hardening guidance.
+
 ## Current status
 
-Initial scaffold. The first production target is `shop.search` with curated source collections and no browser fallback.
+Scaffold with bounded budgets, curated registries, affiliate-safe URL rewriting, local health checks, local bind guards, and ops scripts. The first production target is `shop.search` with curated source collections and no browser fallback.
