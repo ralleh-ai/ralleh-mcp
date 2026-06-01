@@ -4,7 +4,7 @@ import "testing"
 
 func TestContentCollectionsExist(t *testing.T) {
 	reg := DefaultRegistry()
-	for _, id := range []string{"breaking_news", "stocks_markets", "sports", "entertainment", "science", "research", "technology"} {
+	for _, id := range []string{"web", "breaking_news", "news_brief", "rss", "stocks_markets", "sports", "weather", "government", "community", "reviews_consensus", "entertainment", "science", "research", "technology"} {
 		if _, ok := reg.Collections[id]; !ok {
 			t.Fatalf("missing collection %s", id)
 		}
