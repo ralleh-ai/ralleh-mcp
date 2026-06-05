@@ -11,6 +11,15 @@ coverage.txt
 !.env.example
 .secrets/
 
+# OpenClaw local workspace noise
+/.openclaw/
+/AGENTS.md
+/HEARTBEAT.md
+/IDENTITY.md
+/SOUL.md
+/TOOLS.md
+/USER.md
+
 # OS/editor
 .DS_Store
 .idea/
