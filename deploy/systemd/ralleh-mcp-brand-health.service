@@ -1,0 +1,26 @@
+[Unit]
+Description=Ralleh MCP Brand local health service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ralleh-mcp
+Group=ralleh-mcp
+ExecStart=/opt/ralleh/ralleh-mcp/bin/ralleh-mcp-brand --db /opt/ralleh/ralleh-mcp/brand.db --health-server --health-listen 127.0.0.1:8625
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ralleh/ralleh-mcp
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

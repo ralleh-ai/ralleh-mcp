@@ -100,7 +100,8 @@ test -f "$BACKUP_PATH"
 tar -tzf "$BACKUP_PATH" >/tmp/ralleh-mcp-smoke-backup-list.txt
 grep -q 'bin/ralleh-mcp-shop' /tmp/ralleh-mcp-smoke-backup-list.txt
 grep -q 'configs/sources.shop.yaml' /tmp/ralleh-mcp-smoke-backup-list.txt
-echo "backup ok: $BACKUP_PATH"
+grep -q 'brand.db' /tmp/ralleh-mcp-smoke-backup-list.txt
+echo "backup ok (including brand.db): $BACKUP_PATH"
 
 log "deterministic fake search smoke"
 ./dist/bin/ralleh-mcp-shop --search-query "cordless drill" --search-collection tools --search-sources ebay,random_site >/tmp/ralleh-mcp-smoke-shop-search.json

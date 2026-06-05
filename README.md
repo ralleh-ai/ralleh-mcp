@@ -1,79 +1,41 @@
-# Ralleh MCP
+# Ralleh MCP (VPS-local OpenClaw toolbelt)
 
-Enterprise-grade MCP services for bounded, curated shopping and travel research.
+Ralleh MCP is a **VPS-local MCP toolbelt repo**.
 
-## Mission
+Each VPS runs its own local Ralleh MCP binaries, and OpenClaw instances on that same VPS call them locally.
 
-Ralleh MCP gives OpenClaw and other LLM clients fast, structured, safe search tools for:
+> This repo explicitly does **not** adopt Docker as part of its runtime model.
 
-- shopping/product research via `ralleh-mcp-shop`
-- travel/flight research via `ralleh-mcp-travel`
+See the target-role spec: [`docs/VPS-LOCAL-TOOLBELT-SPEC.md`](docs/VPS-LOCAL-TOOLBELT-SPEC.md).
 
-The services are **research engines**, not transaction agents.
+## Services in this repo
 
-## Non-negotiable v1 boundaries
+- `ralleh-mcp-shop` — curated shopping research
+- `ralleh-mcp-travel` — curated travel/flight research
+- `ralleh-mcp-search` — curated content/news research
+- `ralleh-mcp-brand` — local brand memory + validation
 
-- No credit cards.
-- No checkout.
-- No booking.
-- No passenger PII.
-- No account login automation.
-- No arbitrary website crawling.
-- No captcha bypass.
-- No unbounded requests, goroutines, retries, browser sessions, or response bodies.
+These are research/memory tools, not transaction agents.
 
-## Core architecture
+## Hard boundaries
 
-```text
-cmd/
-  ralleh-mcp-shop/       # shopping MCP server
-  ralleh-mcp-travel/     # travel MCP server
-internal/
-  core/                  # shared enterprise request/runtime primitives
-  shop/                  # curated shopping collections, adapters, ranking
-  travel/                # curated travel/flight collections, adapters, ranking
-configs/
-  sources.shop.yaml      # curated shopping source registry
-  sources.travel.yaml    # curated travel source registry
-```
+- No credit cards
+- No checkout
+- No booking
+- No passenger PII handling
+- No account login automation
+- No arbitrary website crawling
+- No captcha bypass
 
-## Design
-
-The LLM chooses a **known collection**, not random URLs:
-
-```json
-{
-  "query": "cordless drill brushless 20v",
-  "collection": "tools",
-  "preferredSources": ["home_depot", "lowes", "harbor_freight"],
-  "budgetProfile": "standard"
-}
-```
-
-Ralleh MCP then:
-
-1. validates the collection and known source IDs;
-2. resolves approved adapters from curated registries;
-3. clamps the request to hard resource budgets;
-4. searches in bounded parallel workers;
-5. returns normalized results, source diagnostics, evidence, and affiliate-ready presentation URLs.
-
-## Affiliate URL rule
-
-Ralleh MCP keeps two URLs:
-
-- `canonicalUrl` for fetch, cache, dedupe, and evidence;
-- `presentedUrl` for the user-facing affiliate-tagged link.
-
-Affiliate status must never silently affect ranking unless a ranking policy explicitly allows it.
-
-## Health and operations
+## Local-first operations
 
 One-shot health checks:
 
 ```bash
 ralleh-mcp-shop --health
 ralleh-mcp-travel --health
+ralleh-mcp-search --health
+ralleh-mcp-brand --db /opt/ralleh/ralleh-mcp/brand.db --health
 ```
 
 Local-only HTTP health endpoints:
@@ -81,10 +43,39 @@ Local-only HTTP health endpoints:
 ```bash
 ralleh-mcp-shop --health-server --health-listen 127.0.0.1:8621
 ralleh-mcp-travel --health-server --health-listen 127.0.0.1:8622
+ralleh-mcp-search --health-server --health-listen 127.0.0.1:8624
+ralleh-mcp-brand --db /opt/ralleh/ralleh-mcp/brand.db --health-server --health-listen 127.0.0.1:8625
 ```
 
-See [`docs/OPERATIONS.md`](docs/OPERATIONS.md) for VPS install, upgrade, backup, and systemd hardening guidance.
+Non-loopback health bind is rejected unless `--allow-non-loopback-health` is explicitly set.
 
-## Current status
+## Install layout
 
-Scaffold with bounded budgets, curated registries, affiliate-safe URL rewriting, local health checks, local bind guards, and ops scripts. The first production target is `shop.search` with curated source collections and no browser fallback.
+```text
+/opt/ralleh/ralleh-mcp/
+  bin/
+  configs/
+  backups/
+```
+
+Default brand DB path used by ops scripts/units:
+
+```text
+/opt/ralleh/ralleh-mcp/brand.db
+```
+
+(You can override `--db` if you prefer `/var/lib/...`.)
+
+## Build, test, smoke
+
+```bash
+go test ./...
+scripts/build.sh
+scripts/smoke.sh
+```
+
+## Operations docs
+
+- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — install/upgrade/backup/systemd
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — service and safety model
+- [`docs/VPS-LOCAL-TOOLBELT-SPEC.md`](docs/VPS-LOCAL-TOOLBELT-SPEC.md) — repo role and roadmap

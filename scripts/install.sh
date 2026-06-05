@@ -2,6 +2,7 @@
 set -euo pipefail
 PREFIX="${PREFIX:-/opt/ralleh/ralleh-mcp}"
 SRC="${SRC:-dist}"
+BRAND_DB="${BRAND_DB:-$PREFIX/brand.db}"
 install -d -m 0755 "$PREFIX/bin" "$PREFIX/configs" "$PREFIX/backups"
 install -m 0755 "$SRC/bin/ralleh-mcp-shop" "$PREFIX/bin/ralleh-mcp-shop"
 install -m 0755 "$SRC/bin/ralleh-mcp-travel" "$PREFIX/bin/ralleh-mcp-travel"
@@ -12,5 +13,5 @@ install -m 0644 configs/sources.travel.yaml "$PREFIX/configs/sources.travel.yaml
 "$PREFIX/bin/ralleh-mcp-shop" --health >/dev/null
 "$PREFIX/bin/ralleh-mcp-travel" --health >/dev/null
 "$PREFIX/bin/ralleh-mcp-search" --health >/dev/null
-"$PREFIX/bin/ralleh-mcp-brand" --db "$PREFIX/brand-smoke.db" --health >/dev/null
+"$PREFIX/bin/ralleh-mcp-brand" --db "$BRAND_DB" --health >/dev/null
 echo "Installed Ralleh MCP to $PREFIX"

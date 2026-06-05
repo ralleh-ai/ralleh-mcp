@@ -1,9 +1,21 @@
 # Ralleh MCP Architecture
 
+## Deployment shape
+
+Ralleh MCP is designed as a **VPS-local toolbelt**:
+
+- each VPS has local binaries and configs;
+- OpenClaw on that VPS calls local MCP services;
+- health/ops endpoints are localhost-first.
+
+No Docker dependency is required for this architecture.
+
 ## Services
 
 - `ralleh-mcp-shop`: curated shopping/product research.
 - `ralleh-mcp-travel`: curated travel/flight research.
+- `ralleh-mcp-search`: curated content/news research.
+- `ralleh-mcp-brand`: local brand memory and compliance validation.
 - `internal/core`: shared budget, source, affiliate, result, request, cache, and observability primitives.
 
 ## Boundary
