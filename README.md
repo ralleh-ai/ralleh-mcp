@@ -79,3 +79,5 @@ scripts/smoke.sh
 - [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — install/upgrade/backup/systemd
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — service and safety model
 - [`docs/VPS-LOCAL-TOOLBELT-SPEC.md`](docs/VPS-LOCAL-TOOLBELT-SPEC.md) — repo role and roadmap
+- [`docs/OPENCLAW-INTEGRATION-SPEC.md`](docs/OPENCLAW-INTEGRATION-SPEC.md) — exact OpenClaw consumption target and MCP readiness gap
+- [`docs/ROLLOUT-CHECKLIST.md`](docs/ROLLOUT-CHECKLIST.md) — VPS deployment checklist
