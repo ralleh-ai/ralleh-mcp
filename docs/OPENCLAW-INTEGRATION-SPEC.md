@@ -15,13 +15,16 @@ Today, this repo ships local service binaries with health endpoints and determin
 - `ralleh-mcp-search`
 - `ralleh-mcp-brand`
 
-These binaries are useful runtime services, but they are **not yet proven MCP protocol servers** exposed over stdio, SSE, or streamable HTTP.
+Current MCP readiness:
+
+- `ralleh-mcp-search --mcp` is the first stdio MCP entrypoint and exposes a small content-search tool surface.
+- `shop`, `travel`, and `brand` are still local service binaries, not MCP protocol servers yet.
 
 That means:
 
 - this repo is already valid as a **VPS-local toolbelt**;
-- it is **not yet ready** to be registered directly under OpenClaw `mcp.servers` as a working MCP server without additional implementation;
-- we should not pretend local health/service binaries are already MCP-complete.
+- `ralleh-mcp-search` is the first binary ready for OpenClaw `mcp.servers` validation;
+- remaining binaries should not be registered as MCP servers until protocol handlers are added.
 
 ## Target model
 
@@ -48,7 +51,7 @@ Why stdio first:
 
 ### Preferred registration shape
 
-Target config shape in OpenClaw once MCP protocol entrypoints exist:
+Target config shape in OpenClaw after each binary has an MCP stdio mode. Today only `ralleh-search` should be treated as implementation-ready:
 
 ```json
 {
@@ -64,7 +67,7 @@ Target config shape in OpenClaw once MCP protocol entrypoints exist:
       },
       "ralleh-search": {
         "command": "/opt/ralleh/ralleh-mcp/bin/ralleh-mcp-search",
-        "args": []
+        "args": ["--mcp"]
       },
       "ralleh-brand": {
         "command": "/opt/ralleh/ralleh-mcp/bin/ralleh-mcp-brand",
@@ -75,7 +78,7 @@ Target config shape in OpenClaw once MCP protocol entrypoints exist:
 }
 ```
 
-Important: this config is **target-state** only. It becomes valid after these binaries speak MCP correctly over stdio.
+Important: `ralleh-search` is the current working pattern. The other definitions are target-state until those binaries speak MCP correctly over stdio.
 
 ## OpenClaw tool-policy requirements
 
@@ -137,9 +140,19 @@ If a VPS chooses another local path, the value must stay consistent across:
 - install/health scripts;
 - OpenClaw MCP server args.
 
-## What is missing before direct OpenClaw MCP registration
+## Current `ralleh-mcp-search --mcp` tool surface
 
-Before `ralleh-mcp` can be consumed through OpenClaw `mcp.servers`, each intended MCP binary needs:
+`ralleh-mcp-search --mcp` exposes:
+
+- `list_collections`
+- `rank_sources`
+- `search_content`
+
+The first implementation intentionally uses deterministic fake adapters, matching the repo's smoke-test posture. Live website/API extraction remains a later adapter milestone.
+
+## What is missing before all binaries are direct OpenClaw MCP registrations
+
+Each remaining intended MCP binary still needs:
 
 1. **real MCP protocol handlers** over stdio;
 2. deterministic tool registration and schema definitions;
@@ -149,22 +162,15 @@ Before `ralleh-mcp` can be consumed through OpenClaw `mcp.servers`, each intende
 
 ## Recommended implementation sequence
 
-### Phase 1 — Make one server real first
+### Phase 1 — Search MCP baseline
 
-Start with **`ralleh-mcp-search`**.
+`ralleh-mcp-search --mcp` now provides the baseline stdio MCP implementation.
 
-Reason:
+Remaining validation for this phase:
 
-- broad utility for OpenClaw instances;
-- no transaction ambiguity;
-- lower risk than travel or shopping action creep;
-- easier to validate with deterministic fake adapters already present in repo.
-
-Deliverables:
-
-- real stdio MCP mode in `ralleh-mcp-search`;
-- one small, clean tool surface;
-- OpenClaw local registration example validated on a VPS.
+- register it in a real OpenClaw `mcp.servers` config;
+- confirm tool visibility through OpenClaw tool policy;
+- run one OpenClaw-driven tool call.
 
 ### Phase 2 — Add `shop`
 
@@ -258,6 +264,5 @@ The correct architecture is:
 
 The correct immediate next engineering move is:
 
-- make `ralleh-mcp-search` a real stdio MCP server first;
-- prove OpenClaw can consume it locally;
+- prove OpenClaw can consume `ralleh-mcp-search --mcp` locally;
 - then expand server-by-server.

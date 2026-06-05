@@ -38,6 +38,12 @@ ralleh-mcp-search --health
 ralleh-mcp-brand --db /opt/ralleh/ralleh-mcp/brand.db --health
 ```
 
+First stdio MCP entrypoint:
+
+```bash
+ralleh-mcp-search --mcp
+```
+
 Local-only HTTP health endpoints:
 
 ```bash

@@ -11,9 +11,12 @@ import (
 	"syscall"
 
 	"github.com/ralleh-ai/ralleh-mcp/internal/content"
+	contentmcp "github.com/ralleh-ai/ralleh-mcp/internal/content/mcp"
 	contentsearch "github.com/ralleh-ai/ralleh-mcp/internal/content/search"
 	"github.com/ralleh-ai/ralleh-mcp/internal/core/budget"
 	"github.com/ralleh-ai/ralleh-mcp/internal/core/health"
+	"github.com/ralleh-ai/ralleh-mcp/internal/core/mcpstdio"
+	"github.com/ralleh-ai/ralleh-mcp/internal/core/runtime"
 )
 
 func capabilities() map[string]bool {
@@ -25,6 +28,7 @@ func main() {
 	healthServer := flag.Bool("health-server", false, "serve local-only HTTP health endpoints")
 	healthListen := flag.String("health-listen", "127.0.0.1:8624", "health server listen address")
 	allowNonLoopback := flag.Bool("allow-non-loopback-health", false, "allow health server to bind outside loopback; requires external firewall/auth controls")
+	mcpMode := flag.Bool("mcp", false, "serve MCP over stdio")
 	searchQuery := flag.String("search-query", "", "run deterministic fake content search for smoke/integration testing")
 	searchCollection := flag.String("search-collection", "breaking_news", "curated content collection for fake search")
 	searchSources := flag.String("search-sources", "", "comma-separated preferred source IDs for fake search")
@@ -34,6 +38,13 @@ func main() {
 
 	reg := content.DefaultRegistry()
 	status := health.Evaluate("ralleh-mcp-search", reg, capabilities())
+	if *mcpMode {
+		if err := mcpstdio.Serve(context.Background(), os.Stdin, os.Stdout, "ralleh-mcp-search", runtime.Version, contentmcp.Tools()); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
 	if *rankSources {
 		if *rankCollection != "" {
 			ranks, err := reg.RankCollection(*rankCollection)

@@ -134,6 +134,25 @@ Fake upstream searches validate search contracts, source rejection, affiliate UR
 Live website/API searches are still intentionally not part of smoke until real source adapters are implemented.
 MSG
 
+log "search stdio MCP smoke"
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search_content","arguments":{"query":"ai chips","collection":"technology","preferredSources":["hacker_news","random_blog"],"budgetProfile":"fast"}}}' \
+  | ./dist/bin/ralleh-mcp-search --mcp >/tmp/ralleh-mcp-smoke-search-mcp.jsonl
+python3 - <<'PY'
+import json
+lines=[json.loads(line) for line in open('/tmp/ralleh-mcp-smoke-search-mcp.jsonl') if line.strip()]
+assert len(lines)==3, lines
+assert lines[0]['result']['serverInfo']['name']=='ralleh-mcp-search', lines[0]
+tools=[tool['name'] for tool in lines[1]['result']['tools']]
+assert tools==['list_collections','rank_sources','search_content'], tools
+text=lines[2]['result']['content'][0]['text']
+payload=json.loads(text)
+assert payload['status']=='ok', payload
+assert 'random_blog' in payload['sourcePlan']['rejectedSources'], payload['sourcePlan']
+print(f"search MCP smoke: tools={tools}, results={len(payload['results'])}")
+PY
 
 log "brand memory smoke"
 ./dist/bin/ralleh-mcp-brand --db "$BRAND_DB" --create-brand --org org_smoke --brand brand_smoke --name "Ralleh Smoke" --description "Smoke test brand" --mission "Verify brand memory" >/tmp/ralleh-mcp-smoke-brand-create.json
